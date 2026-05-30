@@ -151,11 +151,72 @@ oracle_ipw_mean <- function(population, sample_indicator){
 }
 
 
+# Mass imputation / prediction estimator
+#
+# Fit an outcome model E(Y | X) in the non-probability sample,
+# then predict Y for the full finite population and average predictiions
+mass_imputation_mean <- function(population, sample_indicator){
+  sample_data <- population[population$sample_indicator == 1, ]
+  
+  outcome_model <- lm(
+    y ~ age + female + higher_education + urban,
+    data = sample_data
+  )
+  
+  y_hat_population <- predict(outcome_model, newdata = population)
+  
+  estimate <- mean(y_hat_population)
+  
+  return(estimate)
+}
 
 
+# Doubly robust estimator
+#
+# Combines:
+#   - an outcome model E(Y | X)
+#.  - a propensity model P(S = 1 | X)
+#
+# Formula:
+#  mean(m_hat(X)) + N^{-1} * sum_{i in sample} (Y_i - m_hat(X_i)) / p_hat_i
+# Under ignorability, this estimator is consistent if either the outcome
+# model or the propensity model is correctly specified
+#
+# It is not expected to fully remove bias under non-ignorable selection
+doubly_robust_mean <- function(population, sample_indicator){
+  sample_data <- population[population$sample_indicator == 1, ]
+  
+  # Outcome model fitted in non-probability sample
+  outcome_model <- lm(
+    y ~ age + female + higher_education + urban,
+    data = sample_data
+  )
+  
+  m_hat_population <- predict(outcome_model, newdata = population)
+  m_hat_sample <- m_hat_population[sample_indicator == 1]
+  
+  # Propensity model fitted using full population X and sample indicator
+  propensity_model <- glm(
+    sample_indicator ~ age + female + higher_education + urban,
+    data = population,
+    family = binomial()
+  )
+  
+  p_hat <- predict(propensity_model, type = "response")
+  p_hat <- clip_probabilities(p_hat)
+  p_hat_sample <- p_hat[sample_indicator == 1]
+  
+  correction_term <- sum((sample_data$y - m_hat_sample) /p_hat_sample) / nrow(population)
+  
+  estimate <- mean(m_hat_population) + correction_term
+  
+  return(estimate)
+}
 
 
-
+# -----------------------------
+# 3. Estimate methods for one scenario
+# -----------------------------
 
 
 
