@@ -41,6 +41,20 @@ clip_probabilities <- function(p, lower = 0.001, upper = 0.999){
 #
 # This is a simple linear calibration implementation.
 # It is useful for simulation and learning purposes.
+
+# This uses the true simulated non-probability selection probabilities
+# It is not available in real applications
+# It is included only as a simulation benchmark
+oracle_ipw_mean <- function(population, sample_indicator){
+  sample_data <- population[sample_indicator == 1,]
+  sample_true_p <- population$nonprob_selection_probability[sample_indicator == 1]
+  sample_true_p <- clip_probabilities(sample_true_p)
+  
+  estimate <- sum(sample_data$y / sample_true_p) / nrow(population)
+  
+  return(estimate)
+}
+
 calibration_mean <- function(population, sample_indicator) {
   sample_data <- population[sample_indicator == 1, ]
  
@@ -126,7 +140,7 @@ estimated_ipw_mean <- function(population, sample_indicator){
   p_hat <- predict(propensity_model, type = "response")
   p_hat <- clip_probabilities(p_hat)
   
-  sample_data <- population[population$sample_indicator == 1, ]
+  sample_data <- population[sample_indicator, ]
   sample_p_hat <- p_hat[sample_indicator == 1]
   
   estimate <- sum(sample_data$y / sample_p_hat) / nrow(population)
@@ -137,32 +151,18 @@ estimated_ipw_mean <- function(population, sample_indicator){
 
 # Oracle IPW estimator
 # 
-# This uses the true simulated non-probability selection probabilities
-# It is not available in real applications
-# It is included only as a simulation benchmark
-oracle_ipw_mean <- function(population, sample_indicator){
-  sample_data <- population[sample_indicator == 1,]
-  sample_true_p <- population$nonprob_selection_probability[sample_indicator == 1]
-  sample_true_p <- clip_probabilities(sample_true_p)
-  
-  estimate <- sum(sample_data$y / sample_true_p) / nrow(population)
-  
-  return(estimate)
-}
-
-
 # Mass imputation / prediction estimator
 #
 # Fit an outcome model E(Y | X) in the non-probability sample,
 # then predict Y for the full finite population and average predictiions
 mass_imputation_mean <- function(population, sample_indicator){
-  sample_data <- population[population$sample_indicator == 1, ]
-  
+  sample_data <- population[sample_indicator, ]
+
   outcome_model <- lm(
     y ~ age + female + higher_education + urban,
     data = sample_data
   )
-  
+
   y_hat_population <- predict(outcome_model, newdata = population)
   
   estimate <- mean(y_hat_population)
@@ -184,7 +184,7 @@ mass_imputation_mean <- function(population, sample_indicator){
 #
 # It is not expected to fully remove bias under non-ignorable selection
 doubly_robust_mean <- function(population, sample_indicator){
-  sample_data <- population[population$sample_indicator == 1, ]
+  sample_data <- population[sample_indicator, ]
   
   # Outcome model fitted in non-probability sample
   outcome_model <- lm(
@@ -218,10 +218,121 @@ doubly_robust_mean <- function(population, sample_indicator){
 # 3. Estimate methods for one scenario
 # -----------------------------
 
+estimate_one_scenario <- function(scenario_name, population){
+  n_population <- nrow(population)
+  
+  true_mean <- mean(population$y)
+  
+  probability_sample <- population$probability_sample == 1
+  nonprob_sample <- population$nonprob_sample == 1
+  
+  probability_mean <- mean(population$y[probability_sample])
+  nonprob_naive_mean <- mean(population$y[nonprob_sample])
+  
+  calibration_result <- calibration_mean(
+    population = population,
+    sample_indicator = nonprob_sample
+  )
+  
+  estimated_ipw <- estimated_ipw_mean(
+    population = population,
+    sample_indicator = nonprob_sample
+  )
+  
+  oracle_ipw <- oracle_ipw_mean(
+    population = population,
+    sample_indicator = nonprob_sample
+  )
+  
+  mass_imp <- mass_imputation_mean(
+    population = population,
+    sample_indicator = nonprob_sample
+  )
+  
+  dr <- doubly_robust_mean(
+    population = population,
+    sample_indicator = nonprob_sample
+  )
+  
+  results <- data.frame(
+    scenario = scenario_name,
+    aux_quality = unique(population$aux_quality),
+    selection_mechanism = unique(population$selection_mechanism),
+    method = c(
+      "population_truth",
+      "probability_sample_mean",
+      "nonprob_naive_mean",
+      "calibration_mean",
+      "estimated_ipw_mean",
+      "oracle_ipw_mean",
+      "mass_imputation_mean",
+      "doubly_robust_mean"
+    ),
+    estimate = c(
+      true_mean,
+      probability_mean,
+      nonprob_naive_mean,
+      calibration_result$estimate,
+      estimated_ipw,
+      oracle_ipw,
+      mass_imp,
+      dr
+    ),
+    true_mean = true_mean,
+    n_population = n_population,
+    n_probability = sum(probability_sample),
+    n_nonprob_sample = sum(nonprob_sample),
+    calibration_min_weight = c(
+      NA,
+      NA,
+      NA,
+      calibration_result$min_weight,
+      NA,
+      NA,
+      NA,
+      NA
+    ),
+    calibration_max_weight = c(
+      NA,
+      NA,
+      NA,
+      calibration_result$max_weight,
+      NA,
+      NA,
+      NA,
+      NA
+    )
+  )
+  
+  results$bias <- results$estimate - results$true_mean
+  results$absolute_bias <- abs(results$bias)
 
+  return(results)
+}
 
+# -----------------------------
+# 4. Run all scenarios
+# -----------------------------
 
+estimator_results <- do.call(
+  rbind,
+  lapply(names(simulated_scenarios), function(scenario_name){
+    estimate_one_scenario(
+      scenario_name = scenario_name,
+      population = simulated_scenarios[[scenario_name]]
+    )
+  })
+)
 
+# -----------------------------
+# 5. Save and print results
+# -----------------------------
+
+write.csv(
+  estimator_results,
+  file = "outputs/tables/estimator_comparison.csv",
+  row.names = FALSE
+)
 
 
 
