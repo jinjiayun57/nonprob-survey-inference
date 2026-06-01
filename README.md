@@ -1,12 +1,14 @@
 # Non-Probability Survey Inference
 
-This repository contains an early-stage methodological project on inference from non-probability survey samples. The project uses simulation studies to evaluate how different bias-adjustment methods perform under varying assumptions about sample selection and auxiliary information.
+This repository contains an early-stage methodological project on inference from non-probability survey samples. 
+The project uses simulation studies to evaluate how different bias-adjustment methods perform under varying assumptions about sample selection and auxiliary information.
 
 The long-term goal is to develop a transparent and reproducible workflow for assessing when non-probability samples can support reliable social and official statistics.
 
 ## Motivation
 
-Non-probability samples are increasingly used in online surveys, opt-in panels, platform-based data collection, and mixed-source statistical systems. These data sources can be timely and cost-efficient, but they raise important challenges for population inference because sample inclusion probabilities are unknown and selection may be systematically related to the outcome of interest.
+Non-probability samples are increasingly used in online surveys, opt-in panels, platform-based data collection, and mixed-source statistical systems. 
+These data sources can be timely and cost-efficient, but they raise important challenges for population inference because sample inclusion probabilities are unknown and selection may be systematically related to the outcome of interest.
 
 This project asks:
 
@@ -20,10 +22,11 @@ The initial simulation framework varies two key dimensions.
 
 ### 1. Selection Mechanism
 
-- **Ignorable selection**: sample inclusion depends only on observed auxiliary variables (X).
-- **Non-ignorable selection**: sample inclusion also depends directly on the outcome (Y).
+- **Ignorable selection**: sample inclusion depends only on observed auxiliary variables \(X\).
+- **Non-ignorable selection**: sample inclusion also depends directly on the outcome \(Y\).
 
-The non-ignorable scenarios are included as diagnostic cases in which the ignorability assumption is violated. Standard adjustment methods based only on observed auxiliary variables are not expected to fully remove bias in these settings.
+The non-ignorable scenarios are included as diagnostic cases in which the ignorability assumption is violated. 
+Standard adjustment methods based only on observed auxiliary variables are not expected to fully remove bias in these settings.
 
 ### 2. Quality of Auxiliary Information
 
@@ -70,39 +73,78 @@ The project will compare several families of adjustment methods for non-probabil
 ## Current Status
 
 - [x] Finite population simulation and sampling (`scripts/01_simulate_population.R`)
-- [ ] Calibration / balancing weights
-- [ ] Inverse probability weighting
-- [ ] Mass imputation
-- [ ] Doubly robust estimation
+- [x] Baseline estimator comparison under full-population auxiliary information (`scripts/02_estimate_methods.R`)
+  - probability sample mean;
+  - naive non-probability sample mean;
+  - calibration / balancing weights;
+  - estimated IPW;
+  - oracle IPW as a simulation benchmark;
+  - mass imputation;
+  - doubly robust estimation.
+- [x] Initial one-run results note (`notebooks/01_initial_estimator_results.md`)
+- [ ] Reference-sample integration using probability + non-probability samples
+- [ ] Hájek-normalized IPW and weight diagnostics
 - [ ] Repeated simulation runs and performance evaluation
-- [ ] Non-ignorable extensions
+- [ ] Non-ignorable selection extensions and sensitivity analysis
 
 Generated outputs (`data/processed/`, `outputs/`) are excluded from version control.
 
+## Initial Results
+
+The first estimator comparison uses full-population auxiliary information as an ideal benchmark. 
+The results show that observed-\(X\)-based adjustment methods work well when selection is ignorable and auxiliary variables are informative. 
+Under non-ignorable selection, these methods may reduce bias but do not fully remove it, because the true selection mechanism depends directly on \(Y\).
+
+This first round is best understood as an ideal-information baseline. The next stage moves toward a more realistic two-sample integration setting, 
+where a probability sample serves as the reference source for adjusting a non-probability sample.
+
 ## Planned Next Steps
 
-1. Implement baseline and adjusted estimators:
+1. Develop reference-sample integration estimators using the existing simulated probability and non-probability samples:
+   - probability-sample mean as a design-based benchmark;
    - naive non-probability sample mean;
-   - calibration / balancing weights;
-   - inverse probability weighting;
-   - mass imputation;
-   - doubly robust estimation.
-3. Compare methods using bias, relative bias, variance, RMSE, and coverage.
-4. Add repeated simulation runs to evaluate method performance across replications.
-5. Extend the framework to model misspecification and sensitivity analysis for non-ignorable selection.
-6. Explore application to real survey or panel data where appropriate.
+   - calibration of non-probability weights to probability-sample-estimated totals;
+   - sample-membership IPW using pooled probability and non-probability samples;
+   - mass imputation from the non-probability sample to the probability sample;
+   - doubly robust integration.
+
+2. Add stability and diagnostic measures:
+   - Hájek-normalized IPW;
+   - minimum and maximum weights;
+   - weight distributions;
+   - effective sample size.
+
+3. Run repeated simulations to evaluate:
+   - mean bias;
+   - absolute bias;
+   - variance;
+   - RMSE;
+   - coverage where applicable.
+
+4. Extend the framework to more realistic information settings:
+   - full auxiliary information;
+   - partial auxiliary information;
+   - probability reference sample only;
+   - marginal population benchmarks only.
+
+5. Explore non-ignorable selection extensions:
+   - sensitivity analysis;
+   - selection models;
+   - partial identification or bounds.
 
 ## Repository Structure
 
-```
+```text
 nonprob-survey-inference/
 ├── README.md
 ├── nonprob-survey-inference.Rproj
 ├── scripts/
-│   └── 01_simulate_population.R
-├── R/
+│   ├── 01_simulate_population.R
+│   └── 02_estimate_methods.R
 ├── notebooks/
+│   └── 01_initial_estimator_results.md
 ├── notes/
+├── R/
 ├── data/
 │   ├── raw/
 │   └── processed/
@@ -114,6 +156,9 @@ nonprob-survey-inference/
 
 ## Project Positioning
 
-This project builds on survey methodology, statistical modeling, and data quality research. It treats non-probability sample adjustment not simply as a technical weighting problem, but as a question of assumptions, auxiliary information, and responsible statistical inference.
+This project builds on survey methodology, statistical modeling, and data quality research. 
+It treats non-probability sample adjustment not simply as a technical weighting problem, but as a question of assumptions, 
+auxiliary information, and responsible statistical inference.
 
-A central theme is that adjustment methods are only as credible as the data and assumptions that support them, and the project evaluates both where adjustment works and where it breaks down.
+A central theme is that adjustment methods are only as credible as the data and assumptions that support them, 
+and the project evaluates both where adjustment works and where it breaks down.
