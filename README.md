@@ -78,54 +78,64 @@ The project will compare several families of adjustment methods for non-probabil
   - naive non-probability sample mean;
   - calibration / balancing weights;
   - estimated IPW;
-  - oracle IPW as a simulation benchmark;
+  - oracle IPW as a simulation benchmark (full-population setting only);
   - mass imputation;
   - doubly robust estimation.
-- [x] Initial one-run results note (`notebooks/01_initial_estimator_results.md`)
-- [ ] Reference-sample integration using probability + non-probability samples
+- [x] Reference-sample integration using probability + non-probability samples (`scripts/03_reference_sample_integration.R`)
+  - probability sample mean as design-based benchmark;
+  - naive non-probability mean;
+  - calibrated integration (targets estimated from p-sample design weights);
+  - sample-membership IPW (inverse odds of np-sample membership);
+  - mass imputation to p-sample;
+  - doubly robust integration.
+  - Note: oracle IPW is excluded here because the true selection probabilities are not available in the reference-sample setting.
+- [x] Simulation results documented (`notes/Simulation_results_round1.md`, `notes/simulation_results_round2_reference_integration.md`)
 - [ ] Hájek-normalized IPW and weight diagnostics
 - [ ] Repeated simulation runs and performance evaluation
 - [ ] Non-ignorable selection extensions and sensitivity analysis
 
 Generated outputs (`data/processed/`, `outputs/`) are excluded from version control.
 
-## Initial Results
+## Results Summary
 
-The first estimator comparison uses full-population auxiliary information as an ideal benchmark. 
-The results show that observed-\(X\)-based adjustment methods work well when selection is ignorable and auxiliary variables are informative. 
-Under non-ignorable selection, these methods may reduce bias but do not fully remove it, because the true selection mechanism depends directly on \(Y\).
+**Round 1** (`02_estimate_methods.R`) used full-population auxiliary information as an ideal benchmark.
+Observed-\(X\)-based adjustment methods work well when selection is ignorable and auxiliary variables are informative.
+Under non-ignorable selection, these methods may reduce bias but do not fully remove it.
 
-This first round is best understood as an ideal-information baseline. The next stage moves toward a more realistic two-sample integration setting, 
-where a probability sample serves as the reference source for adjusting a non-probability sample.
+**Round 2** (`03_reference_sample_integration.R`) replaced full-population auxiliary information with a probability sample as reference.
+The broad pattern is consistent with Round 1: adjustment works when selection is ignorable and auxiliary variables are strong, and fails under non-ignorable selection or weak auxiliary information.
+In the `strong_ignorable` scenario, adjusted bias dropped from 1.73 to 0.33–0.40 in Round 2, compared to 0.07 in Round 1 — the gap reflects sampling variability in the reference sample replacing exact population totals.
+In the `weak_ignorable` scenario, adjustment performed slightly worse than the naive estimate in a single run, suggesting that adjustment is not automatically beneficial when auxiliary variables are weakly related to the outcome.
+
+Both rounds confirm the core logic of the project: the success of adjustment depends jointly on the selection mechanism and the quality of auxiliary information.
 
 ## Planned Next Steps
 
-1. Develop reference-sample integration estimators using the existing simulated probability and non-probability samples:
-   - probability-sample mean as a design-based benchmark;
-   - naive non-probability sample mean;
-   - calibration of non-probability weights to probability-sample-estimated totals;
-   - sample-membership IPW using pooled probability and non-probability samples;
-   - mass imputation from the non-probability sample to the probability sample;
-   - doubly robust integration.
-
-2. Add stability and diagnostic measures:
+1. Add stability and diagnostic measures for the implemented estimators:
    - Hájek-normalized IPW;
    - minimum and maximum weights;
    - weight distributions;
    - effective sample size.
 
-3. Run repeated simulations to evaluate:
+2. Run repeated simulations to evaluate estimator performance:
    - mean bias;
    - absolute bias;
    - variance;
    - RMSE;
    - coverage where applicable.
 
-4. Extend the framework to more realistic information settings:
-   - full auxiliary information;
+3. Compare results across information settings:
+   - ~~full population auxiliary information~~ ✓ (Round 1)
+   - ~~probability reference sample only~~ ✓ (Round 2)
    - partial auxiliary information;
-   - probability reference sample only;
    - marginal population benchmarks only.
+
+4. Examine model and method extensions:
+   - bounded calibration weights;
+   - raking / marginal calibration;
+   - nonlinear outcome models;
+   - richer auxiliary variables;
+   - alternative propensity-score specifications.
 
 5. Explore non-ignorable selection extensions:
    - sensitivity analysis;
@@ -140,10 +150,12 @@ nonprob-survey-inference/
 ├── nonprob-survey-inference.Rproj
 ├── scripts/
 │   ├── 01_simulate_population.R
-│   └── 02_estimate_methods.R
+│   ├── 02_estimate_methods.R
+│   └── 03_reference_sample_integration.R
 ├── notebooks/
-│   └── 01_initial_estimator_results.md
 ├── notes/
+│   ├── Simulation_results_round1.md
+│   └── simulation_results_round2_reference_integration.md
 ├── R/
 ├── data/
 │   ├── raw/
