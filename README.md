@@ -88,7 +88,7 @@ The project will compare several families of adjustment methods for non-probabil
   - sample-membership IPW (inverse odds of np-sample membership);
   - mass imputation to p-sample;
   - doubly robust integration.
-  - Note: oracle IPW is excluded here because the true selection probabilities are not available in the reference-sample setting.
+  - *Note:* oracle IPW is excluded here because the true selection probabilities are not available in the reference-sample setting.
 - [x] Simulation results documented (`notes/Simulation_results_round1.md`, `notes/simulation_results_round2_reference_integration.md`)
 - [ ] Hájek-normalized IPW and weight diagnostics
 - [ ] Repeated simulation runs and performance evaluation
@@ -103,11 +103,11 @@ Observed-\(X\)-based adjustment methods work well when selection is ignorable an
 Under non-ignorable selection, these methods may reduce bias but do not fully remove it.
 
 **Round 2** (`03_reference_sample_integration.R`) replaced full-population auxiliary information with a probability sample as reference.
-The broad pattern is consistent with Round 1: adjustment works when selection is ignorable and auxiliary variables are strong, and fails under non-ignorable selection or weak auxiliary information.
+The broad pattern is consistent with Round 1: adjustment works best when selection is ignorable and auxiliary variables are strong, partially reduces bias when strong auxiliary variables absorb some non-ignorable selection, and performs poorly when auxiliary variables are weak.
 In the `strong_ignorable` scenario, adjusted bias dropped from 1.73 to 0.33–0.40 in Round 2, compared to 0.07 in Round 1 — the gap reflects sampling variability in the reference sample replacing exact population totals.
 In the `weak_ignorable` scenario, adjustment performed slightly worse than the naive estimate in a single run, suggesting that adjustment is not automatically beneficial when auxiliary variables are weakly related to the outcome.
 
-Both rounds confirm the core logic of the project: the success of adjustment depends jointly on the selection mechanism and the quality of auxiliary information.
+Both rounds confirm the core logic of the project: the success of adjustment depends jointly on the selection mechanism, the quality of auxiliary information, and the reference information available for adjustment.
 
 ## Planned Next Steps
 
@@ -125,8 +125,8 @@ Both rounds confirm the core logic of the project: the success of adjustment dep
    - coverage where applicable.
 
 3. Compare results across information settings:
-   - ~~full population auxiliary information~~ ✓ (Round 1)
-   - ~~probability reference sample only~~ ✓ (Round 2)
+   - full population auxiliary information — completed in Round 1;
+   - probability reference sample only — completed in Round 2;
    - partial auxiliary information;
    - marginal population benchmarks only.
 
@@ -154,7 +154,7 @@ nonprob-survey-inference/
 │   └── 03_reference_sample_integration.R
 ├── notebooks/
 ├── notes/
-│   ├── Simulation_results_round1.md
+│   ├── simulation_results_round1.md
 │   └── simulation_results_round2_reference_integration.md
 ├── R/
 ├── data/
