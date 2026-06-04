@@ -76,7 +76,7 @@ The project will compare several families of adjustment methods for non-probabil
 - [x] Baseline estimator comparison under full-population auxiliary information (`scripts/02_estimate_methods.R`)
   - probability sample mean;
   - naive non-probability sample mean;
-  - calibration / balancing weights;
+  - calibration / balancing weights (with min/max weight diagnostics);
   - estimated IPW;
   - oracle IPW as a simulation benchmark (full-population setting only);
   - mass imputation;
@@ -85,13 +85,13 @@ The project will compare several families of adjustment methods for non-probabil
   - probability sample mean as design-based benchmark;
   - naive non-probability mean;
   - calibrated integration (targets estimated from p-sample design weights);
-  - sample-membership IPW (inverse odds of np-sample membership);
+  - sample-membership IPW (Hájek-normalized inverse-odds weights, with min/max weight diagnostics);
   - mass imputation to p-sample;
-  - doubly robust integration.
+  - doubly robust integration (with min/max weight diagnostics).
   - *Note:* oracle IPW is excluded here because the true selection probabilities are not available in the reference-sample setting.
 - [x] Simulation results documented (`notes/Simulation_results_round1.md`, `notes/simulation_results_round2_reference_integration.md`)
-- [ ] Hájek-normalized IPW and weight diagnostics
-- [ ] Repeated simulation runs and performance evaluation
+- [x] Hájek-normalized IPW and weight diagnostics
+- [x] Repeated simulation runs and performance evaluation (`scripts/04_monte_carlo_simulations.R`)
 - [ ] Non-ignorable selection extensions and sensitivity analysis
 
 Generated outputs (`data/processed/`, `outputs/`) are excluded from version control.
@@ -111,33 +111,20 @@ Both rounds confirm the core logic of the project: the success of adjustment dep
 
 ## Planned Next Steps
 
-1. Add stability and diagnostic measures for the implemented estimators:
-   - Hájek-normalized IPW;
-   - minimum and maximum weights;
-   - weight distributions;
-   - effective sample size.
-
-2. Run repeated simulations to evaluate estimator performance:
-   - mean bias;
-   - absolute bias;
-   - variance;
-   - RMSE;
-   - coverage where applicable.
-
-3. Compare results across information settings:
+1. Compare results across information settings:
    - full population auxiliary information — completed in Round 1;
    - probability reference sample only — completed in Round 2;
    - partial auxiliary information;
    - marginal population benchmarks only.
 
-4. Examine model and method extensions:
+2. Examine model and method extensions:
    - bounded calibration weights;
    - raking / marginal calibration;
    - nonlinear outcome models;
    - richer auxiliary variables;
    - alternative propensity-score specifications.
 
-5. Explore non-ignorable selection extensions:
+3. Explore non-ignorable selection extensions:
    - sensitivity analysis;
    - selection models;
    - partial identification or bounds.
@@ -151,26 +138,29 @@ nonprob-survey-inference/
 ├── scripts/
 │   ├── 01_simulate_population.R
 │   ├── 02_estimate_methods.R
-│   └── 03_reference_sample_integration.R
+│   ├── 03_reference_sample_integration.R
+│   └── 04_monte_carlo_simulations.R
 ├── notebooks/
 ├── notes/
-│   ├── simulation_results_round1.md
+│   ├── Simulation_results_round1.md
 │   └── simulation_results_round2_reference_integration.md
 ├── R/
 ├── data/
-│   ├── raw/
 │   └── processed/
 ├── outputs/
-│   ├── figures/
 │   └── tables/
+│       ├── scenario_summary.csv
+│       ├── estimator_comparison.csv
+│       ├── integration_comparison.csv
+│       ├── mc_raw_results.csv
+│       └── mc_performance.csv
 └── references/
 ```
 
 ## Project Positioning
 
-This project builds on survey methodology, statistical modeling, and data quality research. 
-It treats non-probability sample adjustment not simply as a technical weighting problem, but as a question of assumptions, 
-auxiliary information, and responsible statistical inference.
+This project sits at the intersection of survey methodology, statistical modeling, and data quality research.
+It treats non-probability sample adjustment not simply as a technical weighting problem, but as a question of assumptions, auxiliary information, and responsible statistical inference.
 
-A central theme is that adjustment methods are only as credible as the data and assumptions that support them, 
-and the project evaluates both where adjustment works and where it breaks down.
+A central theme is that adjustment methods are only as credible as the data and assumptions that support them.
+The project evaluates both where adjustment works and where it breaks down — across classical parametric estimators, machine learning propensity and outcome models, and methods designed for non-ignorable selection.
