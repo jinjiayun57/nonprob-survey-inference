@@ -111,23 +111,27 @@ Both rounds confirm the core logic of the project: the success of adjustment dep
 
 ## Planned Next Steps
 
-1. Compare results across information settings:
-   - full population auxiliary information — completed in Round 1;
-   - probability reference sample only — completed in Round 2;
-   - partial auxiliary information;
-   - marginal population benchmarks only.
+1. Benchmark implemented estimators against modern software
+   - compare hand-coded IPW, mass imputation, and doubly robust estimators with the `nonprobsvy` R package;
+   - examine analytical and bootstrap variance estimation where applicable;
+   - document similarities and differences between package-based and project-specific implementations.
 
-2. Examine model and method extensions:
-   - bounded calibration weights;
-   - raking / marginal calibration;
-   - nonlinear outcome models;
-   - richer auxiliary variables;
-   - alternative propensity-score specifications.
+2. Extend propensity-score adjustment with machine learning
+   - replace parametric logistic membership models with random forest and gradient boosting models;
+   - implement gradient-boosted pseudo-weighting inspired by recent two-step pseudo-weighting approaches;
+   - evaluate bias, MAE, variance, RMSE, weight stability, effective sample size, and covariate balance.
 
-3. Explore non-ignorable selection extensions:
-   - sensitivity analysis;
-   - selection models;
-   - partial identification or bounds.
+3. Develop non-ignorable selection extensions
+   - introduce sensitivity parameters controlling direct outcome-dependent selection;
+   - evaluate how quickly classical X-based adjustment methods break down as selection becomes increasingly non-ignorable;
+   - implement pseudo-likelihood-based non-ignorable estimators using reference probability samples;
+   - compare prediction, IPW, and augmented IPW estimators under non-ignorable participation mechanisms.
+
+4. Explore later-stage extensions
+   - Bayesian inference for nonprobability samples with non-ignorable missingness;
+   - partial identification and bounds;
+   - alternative machine-learning outcome models;
+   - high-dimensional auxiliary information and penalized variable selection.
 
 ## Repository Structure
 
