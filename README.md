@@ -1,137 +1,73 @@
 # Non-Probability Survey Inference
 
-This repository contains an early-stage methodological project on inference from non-probability survey samples. 
-The project uses simulation studies to evaluate how different bias-adjustment methods perform under varying assumptions about sample selection and auxiliary information.
-
-The long-term goal is to develop a transparent and reproducible workflow for assessing when non-probability samples can support reliable social and official statistics.
+A simulation study evaluating bias-adjustment methods for non-probability survey samples, with a focus on when adjustment works and where its assumptions break down.
 
 ## Motivation
 
-Non-probability samples are increasingly used in online surveys, opt-in panels, platform-based data collection, and mixed-source statistical systems. 
-These data sources can be timely and cost-efficient, but they raise important challenges for population inference because sample inclusion probabilities are unknown and selection may be systematically related to the outcome of interest.
+Non-probability samples are increasingly common in online surveys and platform-based data collection. They can be timely and cost-efficient, but raise challenges for population inference because inclusion probabilities are unknown and selection may depend on the outcome of interest.
 
 This project asks:
 
 > Under what conditions can adjustment methods reduce bias in non-probability survey samples, and where do their assumptions break down?
 
-The project is motivated by debates in survey methodology and official statistics about how to responsibly integrate new forms of data collection while maintaining transparency, validity, and reproducibility.
+## Simulation Design
 
-## Core Simulation Design
+The simulation varies two dimensions:
 
-The initial simulation framework varies two key dimensions.
+**Selection mechanism** — ignorable (depends only on observed X) vs. non-ignorable (also depends directly on Y).
 
-### 1. Selection Mechanism
+**Auxiliary information quality** — strong (X strongly predicts Y) vs. weak (X weakly predicts Y).
 
-- **Ignorable selection**: sample inclusion depends only on observed auxiliary variables \(X\).
-- **Non-ignorable selection**: sample inclusion also depends directly on the outcome \(Y\).
+This yields four scenarios: `strong_ignorable`, `strong_nonignorable`, `weak_ignorable`, `weak_nonignorable`.
 
-The non-ignorable scenarios are included as diagnostic cases in which the ignorability assumption is violated. 
-Standard adjustment methods based only on observed auxiliary variables are not expected to fully remove bias in these settings.
+Each scenario uses a finite population of N = 100,000, a probability sample of n = 2,000, and a non-probability sample of n ≈ 3,000.
 
-### 2. Quality of Auxiliary Information
+## Methods Evaluated
 
-- **Strong auxiliary variables**: observed auxiliary variables are strongly related to the outcome.
-- **Weak auxiliary variables**: observed auxiliary variables only weakly explain the outcome, while unobserved factors play a larger role.
-
-This design allows the project to examine not only which methods perform better, but also under what informational and assumption conditions adjustment becomes credible.
-
-## Current Simulation Scenarios
-
-The first script generates four scenario-specific finite populations and samples:
-
-| Auxiliary information | Selection mechanism | Scenario              |
-| --------------------- | ------------------- | --------------------- |
-| Strong                | Ignorable           | `strong_ignorable`    |
-| Strong                | Non-ignorable       | `strong_nonignorable` |
-| Weak                  | Ignorable           | `weak_ignorable`      |
-| Weak                  | Non-ignorable       | `weak_nonignorable`   |
-
-For each scenario, the script creates:
-
-- a finite population;
-- a simple random probability sample;
-- a biased non-probability sample;
-- the true population mean of the outcome;
-- naive sample estimates and initial bias summaries.
-
-## Methodological Framework
-
-The project will compare several families of adjustment methods for non-probability survey data.
-
-| Method family                   | Main idea                                                                         | Core assumption                                                     | Data requirement                                                    | Role in this project         |
-| ------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ---------------------------- |
-| Naive estimator                 | Use the non-probability sample directly                                           | Sample is representative                                            | Non-probability sample with Y                                       | Baseline                     |
-| Calibration / balancing weights | Directly adjust weights to match known auxiliary totals or margins                | Selection bias is captured by observed X                            | Population benchmarks or reference sample                           | Main comparison              |
-| Propensity-score / IPW methods  | Estimate P(S=1 ∣ X), then weight by inverse propensity                            | Ignorability given X; adequate propensity model                     | Non-probability sample plus population or reference data on X       | Main comparison              |
-| Mass imputation / prediction    | Estimate E(Y ∣ X), then predict for the target population or reference sample    | Ignorability given X; adequate outcome model                        | Non-probability sample with (Y, X), plus reference or population X  | Main comparison              |
-| MRP                             | Multilevel outcome model plus poststratification over population cells            | Ignorability within modeled poststratification cells                | Population cell counts                                              | Later extension              |
-| Doubly robust methods           | Combine propensity and outcome models                                             | Ignorability given X; one of the two models correctly specified     | Information for both selection and outcome modeling                 | Key methodological highlight |
-| Non-ignorable selection models  | Explicitly model selection depending on Y or unobserved factors                   | Additional structural assumptions, proxies, or instruments          | Stronger assumptions or additional information                      | Later extension              |
-| Bounds / partial identification | Estimate a plausible range rather than a single point                             | Weaker assumptions defining bounds                                  | Assumptions for bounding                                            | Later extension              |
-| Sensitivity analysis            | Vary assumptions about unobserved selection and inspect robustness                | Diagnostic rather than full correction                              | Sensitivity parameters                                              | Later extension              |
+| Family | Role |
+|---|---|
+| Naive estimator | Baseline |
+| Calibration / balancing weights | Main comparison |
+| Propensity-score / IPW (logistic, RF, XGB) | Main comparison |
+| Mass imputation | Main comparison |
+| Doubly robust (logistic, RF, XGB) | Key highlight |
+| Non-ignorable selection models | Planned |
+| Sensitivity analysis / bounds | Planned |
 
 ## Current Status
 
-- [x] Finite population simulation and sampling (`scripts/01_simulate_population.R`)
-- [x] Baseline estimator comparison under full-population auxiliary information (`scripts/02_estimate_methods.R`)
-  - probability sample mean;
-  - naive non-probability sample mean;
-  - calibration / balancing weights (with min/max weight diagnostics);
-  - estimated IPW;
-  - oracle IPW as a simulation benchmark (full-population setting only);
-  - mass imputation;
-  - doubly robust estimation.
-- [x] Reference-sample integration using probability + non-probability samples (`scripts/03_reference_sample_integration.R`)
-  - probability sample mean as design-based benchmark;
-  - naive non-probability mean;
-  - calibrated integration (targets estimated from p-sample design weights);
-  - sample-membership IPW (Hájek-normalized inverse-odds weights, with min/max weight diagnostics);
-  - mass imputation to p-sample;
-  - doubly robust integration (with min/max weight diagnostics).
-  - *Note:* oracle IPW is excluded here because the true selection probabilities are not available in the reference-sample setting.
-- [x] Simulation results documented (`notes/Simulation_results_round1.md`, `notes/simulation_results_round2_reference_integration.md`)
-- [x] Hájek-normalized IPW and weight diagnostics
-- [x] Repeated simulation runs and performance evaluation (`scripts/04_monte_carlo_simulations.R`)
+- [x] Finite population simulation and sampling (`01_simulate_population.R`)
+- [x] Baseline estimators under full-population auxiliary information (`02_estimate_methods.R`)
+- [x] Reference-sample integration with probability + non-probability samples (`03_reference_sample_integration.R`)
+- [x] Monte Carlo evaluation across 500 replicates (`04_monte_carlo_simulations.R`)
+- [x] Benchmark against `{nonprobsvy}` package — single replicate (`05_nonprobsvy.R`)
+- [x] ML propensity models: random forest and gradient boosting (`06_ml_propensity.R`)
 - [ ] Non-ignorable selection extensions and sensitivity analysis
-
-Generated outputs (`data/processed/`, `outputs/`) are excluded from version control.
 
 ## Results Summary
 
-**Round 1** (`02_estimate_methods.R`) used full-population auxiliary information as an ideal benchmark.
-Observed-\(X\)-based adjustment methods work well when selection is ignorable and auxiliary variables are informative.
-Under non-ignorable selection, these methods may reduce bias but do not fully remove it.
+**Scripts 02–03** established the baseline: adjustment works well under ignorable selection with strong auxiliary variables, partially reduces bias when selection is non-ignorable, and is unreliable when auxiliary variables are weak. Replacing exact population totals with a probability reference sample increases estimation variance but preserves the pattern.
 
-**Round 2** (`03_reference_sample_integration.R`) replaced full-population auxiliary information with a probability sample as reference.
-The broad pattern is consistent with Round 1: adjustment works best when selection is ignorable and auxiliary variables are strong, partially reduces bias when strong auxiliary variables absorb some non-ignorable selection, and performs poorly when auxiliary variables are weak.
-In the `strong_ignorable` scenario, adjusted bias dropped from 1.73 to 0.33–0.40 in Round 2, compared to 0.07 in Round 1 — the gap reflects sampling variability in the reference sample replacing exact population totals.
-In the `weak_ignorable` scenario, adjustment performed slightly worse than the naive estimate in a single run, suggesting that adjustment is not automatically beneficial when auxiliary variables are weakly related to the outcome.
+**Script 04** (MC, 500 reps) confirmed these patterns hold across repeated samples. Calibration and mass imputation are numerically equivalent in the current linear setup.
 
-Both rounds confirm the core logic of the project: the success of adjustment depends jointly on the selection mechanism, the quality of auxiliary information, and the reference information available for adjustment.
+**Script 05** (nonprobsvy benchmark) validated the hand-coded estimators: mass imputation and DR estimates match the `{nonprobsvy}` package to floating-point precision. GEE-calibrated IPW is close to hand-coded Hájek IPW; MLE logit IPW differs due to normalization conventions.
+
+**Script 06** (ML propensity, 500 reps) compared logistic, random forest, and gradient-boosted propensity models for IPW and DR. Key findings:
+- DR estimates are nearly identical across all three propensity models in every scenario, demonstrating the double-robustness property empirically.
+- IPW is sensitive to propensity model choice. In `strong_ignorable` (where logistic is correctly specified), RF IPW shows higher bias than logistic IPW despite higher ESS, suggesting overly uniform weights. In `weak_ignorable`, RF IPW slightly outperforms logistic IPW.
+- ML propensity models do not help under non-ignorable selection — residual bias remains at the same level regardless of propensity model.
 
 ## Planned Next Steps
 
-1. Benchmark implemented estimators against modern software
-   - compare hand-coded IPW, mass imputation, and doubly robust estimators with the `nonprobsvy` R package;
-   - examine analytical and bootstrap variance estimation where applicable;
-   - document similarities and differences between package-based and project-specific implementations.
+1. Non-ignorable selection extensions
+   - sensitivity parameters for outcome-dependent selection;
+   - pseudo-likelihood estimators using reference probability samples;
+   - compare IPW, DR, and prediction estimators as selection becomes increasingly non-ignorable.
 
-2. Extend propensity-score adjustment with machine learning
-   - replace parametric logistic membership models with random forest and gradient boosting models;
-   - implement gradient-boosted pseudo-weighting inspired by recent two-step pseudo-weighting approaches;
-   - evaluate bias, MAE, variance, RMSE, weight stability, effective sample size, and covariate balance.
-
-3. Develop non-ignorable selection extensions
-   - introduce sensitivity parameters controlling direct outcome-dependent selection;
-   - evaluate how quickly classical X-based adjustment methods break down as selection becomes increasingly non-ignorable;
-   - implement pseudo-likelihood-based non-ignorable estimators using reference probability samples;
-   - compare prediction, IPW, and augmented IPW estimators under non-ignorable participation mechanisms.
-
-4. Explore later-stage extensions
-   - Bayesian inference for nonprobability samples with non-ignorable missingness;
+2. Later-stage extensions
    - partial identification and bounds;
-   - alternative machine-learning outcome models;
-   - high-dimensional auxiliary information and penalized variable selection.
+   - ML outcome models;
+   - high-dimensional auxiliary information.
 
 ## Repository Structure
 
@@ -143,28 +79,18 @@ nonprob-survey-inference/
 │   ├── 01_simulate_population.R
 │   ├── 02_estimate_methods.R
 │   ├── 03_reference_sample_integration.R
-│   └── 04_monte_carlo_simulations.R
-├── notebooks/
+│   ├── 04_monte_carlo_simulations.R
+│   ├── 05_nonprobsvy.R
+│   └── 06_ml_propensity.R
 ├── notes/
 │   ├── Simulation_results_round1.md
-│   └── simulation_results_round2_reference_integration.md
+│   ├── simulation_results_round2_reference_integration.md
+│   ├── simulation_results_round3_nonprobsvy_benchmark.md
+│   └── simulation_results_round3_ml_propensity.md
 ├── R/
 ├── data/
 │   └── processed/
 ├── outputs/
 │   └── tables/
-│       ├── scenario_summary.csv
-│       ├── estimator_comparison.csv
-│       ├── integration_comparison.csv
-│       ├── mc_raw_results.csv
-│       └── mc_performance.csv
 └── references/
 ```
-
-## Project Positioning
-
-This project sits at the intersection of survey methodology, statistical modeling, and data quality research.
-It treats non-probability sample adjustment not simply as a technical weighting problem, but as a question of assumptions, auxiliary information, and responsible statistical inference.
-
-A central theme is that adjustment methods are only as credible as the data and assumptions that support them.
-The project evaluates both where adjustment works and where it breaks down — across classical parametric estimators, machine learning propensity and outcome models, and methods designed for non-ignorable selection.
