@@ -81,16 +81,19 @@ nonprob-survey-inference/
 │   ├── 04_monte_carlo_simulations.R
 │   ├── 05_nonprobsvy.R
 │   ├── 06_ml_propensity.R
-│   └── 07_nonignorability_gradient.R
+│   ├── 07_nonignorability_gradient.R
+│   └── 08_plot_gamma_results.R
 ├── notes/
 │   ├── Simulation_results_round1.md
 │   ├── simulation_results_round2_reference_integration.md
 │   ├── simulation_results_round3_nonprobsvy_benchmark.md
-│   └── simulation_results_round3_ml_propensity.md
+│   ├── simulation_results_round4_ml_propensity.md
+│   └── simulation_results_round5_gamma_gradient.md
 ├── R/
 ├── data/
 │   └── processed/
 ├── outputs/
-│   └── tables/
+│   ├── tables/
+│   └── figures/
 └── references/
 ```
