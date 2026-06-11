@@ -42,7 +42,7 @@ Each scenario uses a finite population of N = 100,000, a probability sample of n
 - [x] Monte Carlo evaluation across 500 replicates (`04_monte_carlo_simulations.R`)
 - [x] Benchmark against `{nonprobsvy}` package — single replicate (`05_nonprobsvy.R`)
 - [x] ML propensity models: random forest and gradient boosting (`06_ml_propensity.R`)
-- [ ] Non-ignorable selection extensions and sensitivity analysis
+- [x] Non-ignorable selection gradient: continuous gamma sensitivity sweep (`07_nonignorability_gradient.R`)
 
 ## Results Summary
 
@@ -57,12 +57,11 @@ Each scenario uses a finite population of N = 100,000, a probability sample of n
 - IPW is sensitive to propensity model choice. In `strong_ignorable` (where logistic is correctly specified), RF IPW shows higher bias than logistic IPW despite higher ESS, suggesting overly uniform weights. In `weak_ignorable`, RF IPW slightly outperforms logistic IPW.
 - ML propensity models do not help under non-ignorable selection — residual bias remains at the same level regardless of propensity model.
 
+**Script 07** (gamma gradient, 200 reps per cell) replaces the binary ignorable/non-ignorable switch with a continuous selection-on-Y parameter (`gamma`, grid 0–1.2, with 0.60 matching the earlier non-ignorable scenarios). For each `aux_quality x gamma` cell it reruns calibration, IPW, mass imputation, and DR, summarizing bias and RMSE as a function of gamma. Outputs: `gamma_raw_results.csv`, `gamma_performance.csv`, `gamma_diagnostics.csv` (realized correlation between Y and selection probability per gamma), and `gamma_bias_plot.png` (script 08). Key result: once gamma > 0, calibration/IPW/DR become close substitutes for each other, and the residual bias is governed mainly by aux_quality (how well X proxies for Y) rather than by the choice of adjustment method — see `notes/simulation_results_round5_gamma_gradient.md`.
+
 ## Planned Next Steps
 
-1. Non-ignorable selection extensions
-   - sensitivity parameters for outcome-dependent selection;
-   - pseudo-likelihood estimators using reference probability samples;
-   - compare IPW, DR, and prediction estimators as selection becomes increasingly non-ignorable.
+1. Pseudo-likelihood / selection-model-based estimators that use the reference probability sample to estimate the non-ignorability parameter directly, rather than treating it as known.
 
 2. Later-stage extensions
    - partial identification and bounds;
@@ -81,7 +80,8 @@ nonprob-survey-inference/
 │   ├── 03_reference_sample_integration.R
 │   ├── 04_monte_carlo_simulations.R
 │   ├── 05_nonprobsvy.R
-│   └── 06_ml_propensity.R
+│   ├── 06_ml_propensity.R
+│   └── 07_nonignorability_gradient.R
 ├── notes/
 │   ├── Simulation_results_round1.md
 │   ├── simulation_results_round2_reference_integration.md
