@@ -30,9 +30,10 @@ Each scenario uses a finite population of N = 100,000, a probability sample of n
 | Calibration / balancing weights | Main comparison |
 | Propensity-score / IPW (logistic, RF, XGB) | Main comparison |
 | Mass imputation | Main comparison |
-| Doubly robust (logistic, RF, XGB) | Key highlight |
-| Non-ignorable selection models | Planned |
-| Sensitivity analysis / bounds | Planned |
+| Doubly robust (logistic, RF, XGB) | Key comparison |
+| Non-ignorability gradient | Completed sensitivity analysis |
+| Selection-model / pseudo-likelihood estimators | Planned |
+| Partial identification and bounds | Planned |
 
 ## Current Status
 
